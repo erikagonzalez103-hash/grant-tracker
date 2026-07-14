@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grant Pipeline — Eridion &amp; Quinta</title>
+<style>
+  :root{
+    --navy:#153862; --green:#32A200; --gray:#C4C4C4; --ink:#000000;
+    --paper:#f7f8fa; --card:#ffffff; --muted:#5f6b7a; --line:#e3e6ea;
+    --amber:#BA7517; --brand:var(--navy);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--paper);color:var(--ink);line-height:1.5;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:1080px;margin:0 auto;padding:20px 16px 64px;}
+
+  header.top{background:var(--brand);border-radius:14px;padding:22px 24px;color:#fff;}
+  .top h1{margin:0;font-size:22px;font-weight:600;letter-spacing:-.2px;}
+  .top p{margin:4px 0 0;color:var(--gray);font-size:13.5px;max-width:74ch;}
+
+  .brandbar{display:flex;gap:8px;margin:16px 0;flex-wrap:wrap;align-items:center;}
+  .brandbtn{border:1px solid var(--gray);background:#fff;color:var(--muted);border-radius:999px;
+    padding:8px 16px;font-size:13.5px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:8px;}
+  .brandbtn .dot{width:9px;height:9px;border-radius:50%;background:var(--gray);}
+  .brandbtn[aria-pressed="true"]{background:var(--brand);color:#fff;border-color:var(--brand);}
+  .brandbtn[aria-pressed="true"] .dot{background:var(--green);}
+  .spacer{flex:1;}
+  .reset{background:none;border:none;color:var(--muted);font-size:12.5px;cursor:pointer;text-decoration:underline;}
+
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin:16px 0;}
+  .stat{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 14px;}
+  .stat .l{font-size:12.5px;color:var(--muted);}
+  .stat .v{font-size:24px;font-weight:600;color:var(--navy);}
+
+  .panel{background:#fff;border:1px solid var(--line);border-radius:12px;margin:0 0 14px;overflow:hidden;}
+  .panel > .ph{display:flex;align-items:center;gap:10px;padding:12px 16px;cursor:pointer;font-size:13.5px;font-weight:600;color:var(--navy);}
+  .panel > .ph .chev{transition:transform .15s;font-size:12px;color:var(--muted);}
+  .panel.open > .ph .chev{transform:rotate(90deg);}
+  .panel .pbody{display:none;padding:4px 16px 16px;border-top:1px solid var(--line);}
+  .panel.open .pbody{display:block;}
+  .wrow{display:grid;grid-template-columns:150px 1fr 42px;align-items:center;gap:12px;margin:10px 0;}
+  .wrow label{font-size:13px;color:var(--ink);}
+  .wrow .wv{font-size:13px;font-weight:600;color:var(--navy);text-align:right;}
+  .wrow input[type=range]{width:100%;}
+  .pnote{font-size:12px;color:var(--muted);margin-top:6px;}
+
+  .controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:14px 0 6px;}
+  .tabs{display:flex;gap:6px;flex-wrap:wrap;}
+  .tab{border:1px solid var(--line);background:#fff;color:var(--muted);border-radius:8px;
+    padding:7px 12px;font-size:13px;font-weight:500;cursor:pointer;}
+  .tab[aria-pressed="true"]{background:var(--navy);color:#fff;border-color:var(--navy);}
+  label.sortlab{font-size:13px;color:var(--muted);}
+  select.sort{border:1px solid var(--gray);border-radius:8px;padding:7px 10px;font-size:13px;background:#fff;color:var(--ink);}
+  .addbtn{border:1px solid var(--green);background:#fff;color:#27500a;border-radius:8px;padding:7px 12px;
+    font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
+  .addbtn:hover{background:#eaf3de;}
+
+  .addform{background:#fff;border:1px dashed var(--green);border-radius:12px;padding:16px;margin:12px 0;display:none;}
+  .addform.open{display:block;}
+  .addform h3{margin:0 0 12px;font-size:15px;color:var(--navy);font-weight:600;}
+  .fgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;}
+  .fgrid .full{grid-column:1/-1;}
+  .fgrid label{font-size:12px;color:var(--muted);font-weight:600;display:flex;flex-direction:column;gap:4px;text-transform:uppercase;letter-spacing:.03em;}
+  .fgrid input,.fgrid select,.fgrid textarea{border:1px solid var(--gray);border-radius:7px;padding:7px 9px;font-size:13.5px;font-family:inherit;color:var(--ink);background:#fff;}
+  .fgrid textarea{resize:vertical;min-height:52px;}
+  .faction{display:flex;gap:10px;margin-top:14px;}
+  .fsave{background:var(--green);border:none;color:#fff;border-radius:8px;padding:9px 16px;font-size:13.5px;font-weight:600;cursor:pointer;}
+  .fcancel{background:none;border:1px solid var(--gray);color:var(--muted);border-radius:8px;padding:9px 16px;font-size:13.5px;cursor:pointer;}
+
+  .list{display:flex;flex-direction:column;gap:12px;margin-top:12px;}
+  .tiernote{font-size:13px;color:var(--muted);margin:2px 2px;}
+
+  .g{background:var(--card);border:1px solid var(--gray);border-radius:12px;padding:15px 17px;}
+  .g.excl{border-style:dashed;border-color:var(--line);background:#fbfbfc;}
+  .g .head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap;}
+  .g .name{font-size:15.5px;font-weight:600;}
+  .g .spon{font-size:12.5px;color:var(--muted);margin-top:1px;}
+  .tagme{font-size:10.5px;font-weight:700;color:#27500a;background:#eaf3de;border-radius:5px;padding:2px 6px;margin-left:8px;text-transform:uppercase;letter-spacing:.04em;vertical-align:middle;}
+  .fitwrap{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+  .fit-badge{border:none;cursor:pointer;font-size:13px;font-weight:700;border-radius:8px;padding:6px 11px;display:inline-flex;align-items:center;gap:6px;}
+  .fit-hi{background:#eaf3de;color:#27500a;}
+  .fit-mid{background:#e6eef7;color:var(--navy);}
+  .fit-lo{background:#f0f1f3;color:#444;}
+  .fit-badge .chev{font-size:10px;}
+  .delx{border:none;background:none;color:#a32d2d;cursor:pointer;font-size:16px;line-height:1;padding:2px 4px;}
+
+  .rubric{display:none;margin:12px 0 2px;padding:12px 14px;background:#f7f8fa;border:1px solid var(--line);border-radius:10px;}
+  .rubric.open{display:block;}
+  .rrow{display:grid;grid-template-columns:1fr 60px 88px;align-items:center;gap:10px;padding:5px 0;}
+  .rrow .rl{font-size:13px;color:var(--ink);}
+  .rrow .rl small{color:var(--muted);font-weight:400;}
+  .rrow .rw{font-size:11.5px;color:var(--muted);text-align:right;}
+  .rrow select{border:1px solid var(--gray);border-radius:6px;padding:4px 6px;font-size:13px;background:#fff;}
+  .rtot{font-size:12px;color:var(--muted);margin-top:8px;padding-top:8px;border-top:1px solid var(--line);}
+
+  .pills{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 8px;}
+  .pill{font-size:12.5px;padding:4px 10px;border-radius:7px;display:inline-flex;align-items:center;gap:5px;font-weight:500;}
+  .pill.amt{background:#eaf3de;color:#27500a;}
+  .pill.due{background:#e6eef7;color:var(--navy);}
+  .pill.grant{background:#eaf3de;color:#27500a;}
+  .pill.loan{background:#faeeda;color:#633806;}
+  .pill.svc{background:#f0f1f3;color:#444;}
+  .fitline{font-size:13.5px;margin:6px 0;}
+  .fitline b{color:var(--navy);font-weight:600;}
+  .use{font-size:13px;margin:6px 0;color:#2c2c2a;}
+  .use b{color:var(--navy);font-weight:600;}
+  .watch{font-size:13px;color:var(--muted);}
+  .watch b{color:var(--amber);font-weight:600;}
+
+  .foot{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:12px;padding-top:11px;border-top:1px solid var(--line);flex-wrap:wrap;}
+  .statuswrap{display:flex;align-items:center;gap:8px;}
+  .sdot{width:10px;height:10px;border-radius:50%;background:var(--gray);}
+  select.status{border:1px solid var(--gray);border-radius:8px;padding:6px 9px;font-size:13px;background:#fff;}
+  .upd{font-size:11.5px;color:var(--muted);}
+  .link{font-size:13px;color:var(--green);font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:5px;}
+  .link svg{width:14px;height:14px;}
+  .dates{display:flex;gap:18px;flex-wrap:wrap;margin-top:11px;}
+  .dates label{font-size:11.5px;color:var(--muted);font-weight:600;display:flex;flex-direction:column;gap:4px;text-transform:uppercase;letter-spacing:.03em;}
+  .dates input[type=date]{border:1px solid var(--gray);border-radius:7px;padding:6px 9px;font-size:13px;color:var(--ink);background:#fff;font-family:inherit;}
+  .dates .hint{color:var(--amber);font-weight:600;text-transform:none;letter-spacing:0;}
+  .due-soon{color:#a32d2d !important;font-weight:600;}
+
+  footer.legend{margin-top:22px;font-size:12.5px;color:var(--muted);display:flex;gap:16px;flex-wrap:wrap;}
+  .legend b{color:var(--navy);}
+  @media(max-width:520px){.top h1{font-size:19px;}.fgrid{grid-template-columns:1fr;}.wrow{grid-template-columns:120px 1fr 38px;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top" id="top">
+    <h1 id="title">Grant pipeline</h1>
+    <p id="subtitle"></p>
+  </header>
+
+  <div class="brandbar" role="group" aria-label="Choose brand">
+    <button class="brandbtn" id="b-eridion" aria-pressed="true" onclick="setBrand('eridion')">
+      <span class="dot"></span>Eridion Glass</button>
+    <button class="brandbtn" id="b-quinta" aria-pressed="false" onclick="setBrand('quinta')">
+      <span class="dot"></span>Quinta &amp; Co.</button>
+    <span class="spacer"></span>
+    <button class="reset" onclick="resetStatuses()">Reset saved data</button>
+  </div>
+
+  <div class="stats" id="stats"></div>
+
+  <div class="panel" id="rubricPanel">
+    <div class="ph" onclick="document.getElementById('rubricPanel').classList.toggle('open')">
+      <span class="chev">&#9654;</span> Scoring rubric &mdash; tune what "% fit" means to you
+    </div>
+    <div class="pbody" id="weightBody"></div>
+  </div>
+
+  <div class="controls">
+    <div class="tabs" id="tabs"></div>
+    <span class="spacer"></span>
+    <button class="addbtn" onclick="toggleAddForm()"><span style="font-size:15px;">+</span> Add a grant</button>
+    <label class="sortlab" for="sort">Sort</label>
+    <select class="sort" id="sort" onchange="render()">
+      <option value="fit">By % fit</option>
+      <option value="due">By due date</option>
+      <option value="amount">By amount</option>
+      <option value="status">By status</option>
+      <option value="name">A&ndash;Z</option>
+    </select>
+  </div>
+
+  <div class="addform" id="addForm">
+    <h3>Add a grant to <span id="addBrandName">Eridion</span></h3>
+    <div class="fgrid">
+      <label class="full">Grant name<input id="f-name" placeholder="e.g. Comcast RISE"></label>
+      <label>Sponsor<input id="f-spon" placeholder="e.g. Comcast"></label>
+      <label>Amount<input id="f-amt" placeholder="e.g. $10,000"></label>
+      <label>Tier<select id="f-tier"></select></label>
+      <label>Repayable?<select id="f-repay">
+        <option value="grant">Grant &mdash; no payback</option>
+        <option value="loan">Loan &mdash; repayable</option>
+        <option value="service">Service &mdash; no cash</option>
+      </select></label>
+      <label>Deadline (optional)<input id="f-due" type="date"></label>
+      <label>Winners announced (optional)<input id="f-decision" type="date"></label>
+      <label class="full">Use of funds<input id="f-use" placeholder="What the money must cover"></label>
+      <label class="full">Why it fits<input id="f-fit" placeholder="Eligibility / why it's a match"></label>
+      <label class="full">Watch-outs / notes<input id="f-watch" placeholder="Fees, restrictions, reminders"></label>
+      <label class="full">Link<input id="f-url" placeholder="https://"></label>
+    </div>
+    <div class="faction">
+      <button class="fsave" onclick="saveCustomGrant()">Save grant</button>
+      <button class="fcancel" onclick="toggleAddForm()">Cancel</button>
+    </div>
+  </div>
+
+  <div class="tiernote" id="tiernote"></div>
+  <div class="list" id="list"></div>
+
+  <footer class="legend">
+    <span><b>% fit</b> is a weighted rubric score &mdash; click any badge to see and adjust the breakdown.</span>
+    <span><b>Repayable?</b> Grant = keep it. Loan = pay back. Service = in-kind, no cash.</span>
+    <span><b>Dates</b> save to your device; "Date submitted" auto-stamps when you mark Submitted.</span>
+  </footer>
+</div>
+
+<script>
+/* ---------------- brand + tier config ---------------- */
+const BRANDS = {
+  eridion: { title:"Eridion grant pipeline",
+    sub:"Filtered for an established, WOSB/WBENC-certified glass sub. Startup-only and non-contractor programs are pulled out." },
+  quinta: { title:"Quinta & Co. grant pipeline",
+    sub:"For a women-entrepreneur education & consulting brand — women-owned and startup-stage grants both count here. Only sector-mismatched programs are filtered out." }
+};
+const TIERS = [
+  {id:"rolling",  label:"Open now · apply", note:"Open right now — rolling programs plus any imminent deadlines. Best odds per hour of effort."},
+  {id:"startup",  label:"Startup-friendly", note:"Early-stage women-owned programs. Relevant for Quinta, not for an established Eridion."},
+  {id:"annual",   label:"Annual / competitive", note:"Cyclical and competitive. Watch the reopen dates."},
+  {id:"local",    label:"Texas / Dallas", note:"Smaller applicant pool. Some are loans, not grants — flagged."},
+  {id:"leverage", label:"Bigger lever", note:"Not always a grant, but the largest funding channel for this brand."},
+  {id:"excluded", label:"Filtered out (why)", note:"Kept for reference so you don't re-find them."}
+];
+
+/* ---------------- rubric ---------------- */
+const CRIT = [
+  {k:"elig",  label:"Eligibility",       help:"How cleanly you qualify"},
+  {k:"value", label:"Award value",       help:"Size of the cash / upside"},
+  {k:"odds",  label:"Win odds",          help:"Rolling / local / repeatable = better"},
+  {k:"effort",label:"Effort vs. reward", help:"Light application for good money = high"},
+  {k:"strat", label:"Strategic fit",     help:"Advances your specific goals"}
+];
+const DEFAULT_WEIGHTS = {elig:30, value:20, odds:20, effort:15, strat:15};
+
+/* ---------------- grant data (sc = judgment overrides on the derived baseline) ---------------- */
+const SHARED = [
+  {tier:"rolling", name:"AT&T Small Business Contest (She's Connected)", spon:"AT&T", amt:"$50K + four $5K runners-up", due:"2026-07-31", dueText:"Jul 31, 2026", repay:"grant", decision:"2026-09-30",
+   use:"General business investment (two 750-word essays: your vision/impact + how you'd use the $50K).", fit:"US owner, up to 99 employees, 1–5 locations. Non-dilutive cash. Women-forward branding but rules are gender-neutral, so both brands qualify.", watch:"Closes Jul 31, 2026. Grand prize requires a production-day shoot + a perpetual likeness release — read that clause before accepting.", url:"https://more.att.com/shesconnected/", sc:{strat:4}},
+  {tier:"rolling", name:"Amber Grant (WomensNet)", spon:"WomensNet", amt:"$10K monthly + year-end", due:null, dueText:"Rolling, monthly", repay:"grant",
+   use:"Any business-related expense — flexible.", fit:"50%+ women-owned, US-based. One application enters all its categories (incl. an Education category that fits Quinta).", watch:"$15 application fee. Verify current year-end award amounts.", url:"https://ambergrantsforwomen.com/", sc:{strat:4, effort:4}},
+  {tier:"rolling", name:"Hello Alice funding marketplace", spon:"Hello Alice + rotating sponsors", amt:"$10K–$50K+ per fund", due:null, dueText:"Rotating; ~5-week windows", repay:"grant",
+   use:"Varies by sponsor fund — most allow general growth spend.", fit:"Funds cycle constantly; revenue bands often $5K–$5M. Build one profile, get matched.", watch:"Read the revenue line first — top disqualifier. Many now open-to-all after a 2026 lawsuit.", url:"https://helloalice.com/funding/grants/", sc:{value:4}},
+  {tier:"rolling", name:"Freed Fellowship grant", spon:"Freed Fellowship", amt:"$500 microgrant", due:null, dueText:"Rolling, monthly", repay:"grant",
+   use:"Any business need; includes a strategy session.", fit:"Open to established owners; women/minorities encouraged.", watch:"$19 fee. Tiny award — a warm-up, not a plan.", url:"https://www.freedfellowship.com/grant", sc:{strat:2}},
+  {tier:"rolling", name:"Women Founders Grant", spon:"Hidden Star", amt:"$5,000", due:null, dueText:"Rolling, monthly close", repay:"grant",
+   use:"General business use.", fit:"Existing 51%+ women-owned businesses. Two-question application.", watch:"$25 fee.", url:"https://www.hiddenstar.org/"},
+  {tier:"annual", name:"Tory Burch Foundation Fellowship", spon:"Tory Burch Foundation", amt:"Fellowship + ~$5K education grant", due:null, dueText:"Annual cycle", repay:"grant",
+   use:"Restricted to business education / the fellowship program.", fit:"Established women-owned firms; education, network, national exposure. Strong credibility for Quinta's brand and your speaking work.", watch:"Very competitive (~50 fellows). Cash component varies year to year.", url:"https://www.toryburchfoundation.org/", sc:{strat:4, value:2, effort:2}},
+  {tier:"annual", name:"Enthuse Foundation grants", spon:"Enthuse Foundation", amt:"~$37K across 8 grants", due:null, dueText:"Annual", repay:"grant",
+   use:"Purpose-specific: tools, digital marketing, insurance, retirement.", fit:"Several purposes map to real line items for either brand.", watch:"Historically leans CPG; confirm current eligibility. Interview required.", url:"https://www.enthuse.me/foundation", sc:{elig:4, value:3, effort:2}},
+  {tier:"annual", name:"NASE Growth Grant", spon:"Nat'l Assoc. for the Self-Employed", amt:"Up to $4,000", due:null, dueText:"Quarterly", repay:"grant",
+   use:"A specific business need you name (marketing, equipment, etc.).", fit:"Not women-restricted. Reliable, repeatable, low competition.", watch:"Requires NASE membership.", url:"https://www.nase.org/become-a-member/grants-and-scholarships/business-development-grants", sc:{odds:3, elig:4}}
+];
+const ERIDION_ONLY = [
+  {tier:"annual", name:"FedEx Small Business Grant", spon:"FedEx", amt:"$20K–$50K", due:null, dueText:"Annual contest", repay:"grant",
+   use:"General business growth.", fit:"For-profit US businesses under ~99 employees.", watch:"Requires an active FedEx shipping account — may not fit a glass sub that rarely ships freight. Program has paused in some years; verify.", url:"https://www.fedex.com/en-us/small-business/grants.html", sc:{elig:3}},
+  {tier:"local", name:"StartHER Grant", spon:"TWU Center for Women Entrepreneurs", amt:"$5,000 (25 awarded)", due:null, dueText:"Cyclical — verify window", repay:"grant",
+   use:"Equipment, inventory, or business-property improvements.", fit:"Texas women owners, current or aspiring. Pairs with your HER network.", watch:"Confirm the open date; cycles vary.", url:"https://twu.edu/cwe/", sc:{strat:4}},
+  {tier:"local", name:"Dallas Small Business Diversity Fund", spon:"BCL of Texas (Comerica-backed)", amt:"$10K–$75K", due:null, dueText:"Rolling while funded", repay:"loan",
+   use:"Working capital / growth (loan proceeds).", fit:"Dallas County, women/minority-owned, 2+ years — you clear the tenure bar.", watch:"This is a LOAN, not a grant. Wants 2–50 employees + $60K+ net worth; your sub-only model may complicate the headcount test.", url:"https://bcloftexas.org/ddf", sc:{elig:3, value:4, strat:3}},
+  {tier:"local", name:"North Texas / Dallas Metro SBDC", spon:"SBDC network", amt:"Free advising + curated lists", due:null, dueText:"Ongoing", repay:"service",
+   use:"No cash — advising and application review.", fit:"A scout, not a grantor. They know which local windows are open.", watch:"Use as recon, not a funding source.", url:"https://dallasmetropolitansbdc.com/grants/"},
+  {tier:"leverage", name:"WOSB federal set-aside contracts", spon:"SBA / federal buyers", amt:"5% of federal contract $ targeted", due:null, dueText:"Ongoing bids", repay:"service",
+   use:"Not funding — revenue you compete for.", fit:"You already hold WOSB. The single biggest lever here — keep SAM active (you have UEI + CAGE).", watch:"Pair with APEX Accelerator help. Not a grant.", url:"https://www.sba.gov/federal-contracting/contracting-assistance-programs/women-owned-small-business-federal-contract-program", sc:{value:5, strat:5}},
+  {tier:"leverage", name:"SBA Empower to Grow (E2G)", spon:"U.S. Small Business Administration", amt:"Free training + technical assistance", due:null, dueText:"Ongoing / cohorts", repay:"service",
+   use:"In-kind: training and contracting-readiness help.", fit:"Covers construction-equipment & metal-fab NAICS; feeds your SBA 504 factory plan.", watch:"Requires 3+ years in business (you qualify). Services, not cash.", url:"https://www.sba.gov/local-assistance/find/", sc:{value:2, strat:4}},
+  {tier:"leverage", name:"Corporate supplier-diversity spend", spon:"WBENC corporate members", amt:"Often 6-figure PO potential", due:null, dueText:"Ongoing", repay:"service",
+   use:"Purchase orders, not grant funds.", fit:"Your WBENC WBE opens Tier-1/Tier-2 supplier spend (you've met Walmart supplier diversity). Bigger than any single grant.", watch:"Relationship-driven, not application-driven.", url:"https://www.wbenc.org/", sc:{value:5, strat:5}},
+  {tier:"excluded", name:"Skilled-trades grants (BlackRock, Carhartt, C.D. Smith)", spon:"—", amt:"—", due:null, dueText:"—", repay:"grant",
+   use:"", fit:"", watch:"Route to nonprofits, training orgs, and students — NOT for-profit contractors.", url:""},
+  {tier:"excluded", name:"Startup / stage-capped grants", spon:"—", amt:"—", due:null, dueText:"—", repay:"grant",
+   use:"", fit:"", watch:"SoGal, Cartier (1–3 yrs), Boundless Future (≤3 yrs), Bizee Fresh Start, Halstead. You're 6 years in — out of range.", url:""},
+  {tier:"excluded", name:"Not-a-fit federal + rural", spon:"—", amt:"—", due:null, dueText:"—", repay:"grant",
+   use:"", fit:"", watch:"SBIR/STTR (needs R&D/tech), TWU Texas Rural Woman Grant (rural counties exclude Dallas), TWU veteran grant (not veteran-owned).", url:""}
+];
+const QUINTA_ONLY = [
+  {tier:"rolling", name:"Her Agenda Breakthrough Grant", spon:"Her Agenda", amt:"$5,000", due:"2026-09-18", dueText:"Sep 18, 2026", repay:"grant",
+   use:"Advancing / growing your business.", fit:"US women entrepreneurs, 18+, in business 1+ year. Her Agenda is a women's professional-media platform — squarely Quinta's world.", watch:"Must be an active newsletter subscriber to qualify.", url:"https://heragenda.com/", sc:{elig:4, value:2}},
+  {tier:"rolling", name:"Galaxy Grant", spon:"Hidden Star", amt:"~$3,500", due:null, dueText:"Rolling", repay:"grant",
+   use:"General business use.", fit:"Women & minority owners; application takes minutes, no business plan.", watch:"—", url:"https://www.hiddenstar.org/"},
+  {tier:"annual", name:"Fund Her Future", spon:"H&R Block × Hello Alice", amt:"$100K across 6", due:null, dueText:"Annual (verify cycle)", repay:"grant",
+   use:"Growth; includes a year of business services.", fit:"Women-focused, larger award. Business-services bundle suits a consulting brand.", watch:"Confirm the current window on Hello Alice.", url:"https://helloalice.com/funding/grants/"},
+  {tier:"annual", name:"IFundWomen Universal Grant", spon:"IFundWomen", amt:"Varies (pooled)", due:null, dueText:"Rolling pool", repay:"grant",
+   use:"General; also a crowdfunding + coaching platform.", fit:"Broad women-owned eligibility; doubles as a fundraising channel for Quinta's workshops/products.", watch:"Platform takes fees on crowdfunding side.", url:"https://ifundwomen.com/", sc:{odds:3}},
+  {tier:"local", name:"StartHER Grant", spon:"TWU Center for Women Entrepreneurs", amt:"$5,000 (25 awarded)", due:null, dueText:"Cyclical — verify window", repay:"grant",
+   use:"Equipment, inventory, or business improvements.", fit:"Texas women owners; education mission aligns tightly with Quinta.", watch:"Confirm the open date.", url:"https://twu.edu/cwe/", sc:{strat:4}},
+  {tier:"leverage", name:"Digital tools / Verizon Small Business", spon:"Verizon + partners", amt:"$10,000", due:null, dueText:"Periodic cohorts", repay:"grant",
+   use:"Digital growth; includes free Digital Ready coursework.", fit:"Aimed at digital-first small businesses — fits Quinta's tech-stack/education model.", watch:"Cohort timing varies; apply once for the year.", url:"https://www.verizon.com/about/responsibility/digital-inclusion/small-business-training"},
+  {tier:"startup", name:"Hey Helen Grant", spon:"Hey Helen", amt:"$10,000", due:null, dueText:"Periodic cycles", repay:"grant",
+   use:"General business use.", fit:"100% women-owned US businesses, stage-flexible — a clean fit for a newer brand like Quinta.", watch:"Verify the current cycle window before drafting.", url:"https://www.heyhelen.com/"},
+  {tier:"startup", name:"SoGal Startup Grant", spon:"SoGal Foundation", amt:"Up to $10,000", due:null, dueText:"Rolling cycles", repay:"grant",
+   use:"General startup/business costs.", fit:"Built for early-stage founders needing capital.", watch:"Identity-restricted to Black and/or nonbinary women founders — check the eligibility criteria to confirm you qualify before applying.", url:"https://www.sogalfoundation.org/", sc:{elig:2}},
+  {tier:"startup", name:"Bizee Fresh Start Business Grant", spon:"Bizee", amt:"$2,500 + free formation", due:null, dueText:"Rolling", repay:"grant",
+   use:"Startup/growth costs; includes business-formation services.", fit:"Gender-neutral, aimed at people starting or meaningfully growing a business.", watch:"Requires a sample business plan and a 2-minute video.", url:"https://bizee.com/business-grant", sc:{value:1, strat:2, effort:2}},
+  {tier:"excluded", name:"Trades & construction grants", spon:"—", amt:"—", due:null, dueText:"—", repay:"grant",
+   use:"", fit:"", watch:"Not relevant to a consulting/education brand — those live on the Eridion tab.", url:""},
+  {tier:"excluded", name:"Sector-mismatched grants", spon:"—", amt:"—", due:null, dueText:"—", repay:"grant",
+   use:"", fit:"", watch:"Excluded for wrong sector, not wrong stage: Women Who Tech (tech), Women Founders Network Fast Pitch (tech/CPG), Halstead (jewelry), Makers Mindset (CPG beauty/food). Startups are welcome here — these just aren't Quinta's lane.", url:""},
+  {tier:"excluded", name:"Nonprofit-only education grants", spon:"—", amt:"—", due:null, dueText:"—", repay:"grant",
+   use:"", fit:"", watch:"AAUW Community Action and similar require 501(c)(3) status — Quinta is for-profit, so ineligible.", url:""}
+];
+const BASE = { eridion: SHARED.concat(ERIDION_ONLY), quinta: SHARED.concat(QUINTA_ONLY) };
+
+const STATUSES = ["To review","Eligible","Preparing","Submitted","Awarded","Passed"];
+const STATUS_ORDER = {"Preparing":0,"Submitted":1,"Eligible":2,"To review":3,"Awarded":4,"Passed":5};
+
+/* ---------------- state + storage ---------------- */
+let brand = "eridion";
+let tier = "rolling";
+const LS_KEY = "grantTrackerStatus_v1";
+const LS_WEIGHTS = "grantTrackerWeights_v1";
+const LS_CUSTOM = "grantTrackerCustom_v1";
+let saved = loadJSON(LS_KEY, {});
+let weights = Object.assign({}, DEFAULT_WEIGHTS, loadJSON(LS_WEIGHTS, {}));
+let custom = loadJSON(LS_CUSTOM, {eridion:[], quinta:[]});
+if(!custom.eridion) custom.eridion=[]; if(!custom.quinta) custom.quinta=[];
+
+function loadJSON(k,d){ try{return JSON.parse(localStorage.getItem(k))||d;}catch(e){return d;} }
+function saveJSON(k,v){ try{localStorage.setItem(k, JSON.stringify(v));}catch(e){} }
+function today(){ return new Date().toISOString().slice(0,10); }
+function keyOf(b,name){ return b+"::"+name; }
+function grantsFor(b){ return BASE[b].concat(custom[b]||[]); }
+
+function rec(b,name){
+  const k=keyOf(b,name); let v=saved[k];
+  if(typeof v==="string"){ v={status:v}; saved[k]=v; }
+  if(!v){ v={status:"To review"}; }
+  return v;
+}
+function statusOf(b,name){ return rec(b,name).status || "To review"; }
+function setStatus(b,name,val){
+  const r=rec(b,name); r.status=val; r.updated=today();
+  if(val==="Submitted" && !r.submitted) r.submitted=today();
+  saved[keyOf(b,name)]=r; saveJSON(LS_KEY,saved); render(); renderStats();
+}
+function setField(b,name,field,val){
+  const r=rec(b,name); if(val) r[field]=val; else delete r[field];
+  saved[keyOf(b,name)]=r; saveJSON(LS_KEY,saved); renderStats();
+}
+function setScore(b,name,crit,val){
+  const r=rec(b,name); if(!r.scores) r.scores={}; r.scores[crit]=parseInt(val,10);
+  saved[keyOf(b,name)]=r; saveJSON(LS_KEY,saved); render(); renderStats();
+}
+function resetStatuses(){
+  if(confirm("Clear all saved statuses, dates, score overrides, and grants you added? (Researched grants stay.)")){
+    saved={}; custom={eridion:[],quinta:[]};
+    saveJSON(LS_KEY,saved); saveJSON(LS_CUSTOM,custom); render(); renderStats();
+  }
+}
+
+/* ---------------- scoring ---------------- */
+function amtValue(a){ const m=(a||"").match(/\$([\d,]+)\s*K?/i); if(!m)return 0; let n=parseInt(m[1].replace(/,/g,''),10); if(/K/i.test(a))n*=1000; return n; }
+function deriveScores(g){
+  let value;
+  if(g.repay==="service") value=1;
+  else { const v=amtValue(g.amt); value = v>=50000?5 : v>=20000?4 : v>=10000?3 : v>=5000?2 : v>0?1 : 2; }
+  const oddsMap={rolling:4, startup:4, local:4, annual:2, leverage:3};
+  const odds = oddsMap[g.tier] || 3;
+  const txt = ((g.use||"")+" "+(g.watch||"")+" "+(g.fit||"")).toLowerCase();
+  let effort = 3;
+  if(/750-word|essay|business plan|interview|\bvideo\b/.test(txt)) effort=2;
+  else if(/minutes|two-question|straightforward|\bsimple\b/.test(txt)) effort=4;
+  return {elig:5, value:value, odds:odds, effort:effort, strat:3};
+}
+function scoresFor(b,g){
+  const base=deriveScores(g);
+  const over=(g.sc||{});
+  const user=(rec(b,g.name).scores||{});
+  const out={};
+  CRIT.forEach(c=>{ out[c.k] = (user[c.k]!=null?user[c.k] : (over[c.k]!=null?over[c.k] : base[c.k])); });
+  return out;
+}
+function pctFor(scores){
+  let sw=0, ws=0;
+  CRIT.forEach(c=>{ sw+=weights[c.k]; ws += scores[c.k]*weights[c.k]; });
+  if(sw===0) return 0;
+  return Math.round(ws/(sw*5)*100);
+}
+function fitClass(p){ return p>=75?"fit-hi":p>=55?"fit-mid":"fit-lo"; }
+
+/* ---------------- helpers ---------------- */
+function esc(s){ return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function fmtShort(iso){ if(!iso)return ""; return new Date(iso+"T00:00:00").toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"}); }
+function daysUntil(iso){ if(!iso)return Infinity; return (new Date(iso+"T00:00:00")-new Date())/86400000; }
+function fmtDue(g){ if(!g.due) return g.dueText; const d=daysUntil(g.due); const nice=fmtShort(g.due);
+  if(d<0) return nice+" (closed)"; if(d<=30) return nice+" · "+Math.ceil(d)+"d left"; return nice; }
+function statusColor(s){ if(s==="Awarded")return "#32A200"; if(s==="Submitted"||s==="Preparing")return "#153862"; if(s==="Passed")return "#9aa0a6"; return "#C4C4C4"; }
+const EXT='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14 21 3"/></svg>';
+
+/* ---------------- weights UI ---------------- */
+function renderWeights(){
+  const el=document.getElementById("weightBody");
+  el.innerHTML = CRIT.map(c=>`
+    <div class="wrow">
+      <label>${c.label}<br><span style="font-size:11.5px;color:var(--muted);font-weight:400;">${c.help}</span></label>
+      <input type="range" min="0" max="40" step="5" value="${weights[c.k]}" data-k="${c.k}"
+        oninput="onWeight(this.dataset.k,this.value)">
+      <span class="wv" id="wv-${c.k}">${weights[c.k]}</span>
+    </div>`).join("") +
+    `<div class="pnote">Weights are relative — they don't need to total 100. Changes apply to every grant and save to your device. <button class="reset" onclick="resetWeights()">Reset to defaults</button></div>`;
+}
+function onWeight(k,v){ weights[k]=parseInt(v,10); document.getElementById("wv-"+k).textContent=v; saveJSON(LS_WEIGHTS,weights); render(); renderStats(); }
+function resetWeights(){ weights=Object.assign({},DEFAULT_WEIGHTS); saveJSON(LS_WEIGHTS,weights); renderWeights(); render(); renderStats(); }
+
+/* ---------------- add-grant form ---------------- */
+let addOpen=false;
+function toggleAddForm(){
+  addOpen=!addOpen;
+  const f=document.getElementById("addForm");
+  f.classList.toggle("open",addOpen);
+  document.getElementById("addBrandName").textContent = brand==="eridion"?"Eridion":"Quinta & Co.";
+  const ts=document.getElementById("f-tier");
+  ts.innerHTML=TIERS.filter(t=>t.id!=="excluded").map(t=>`<option value="${t.id}">${esc(t.label)}</option>`).join("");
+  if(addOpen){ ts.value=(tier!=="excluded"?tier:"rolling"); f.scrollIntoView({behavior:"smooth",block:"nearest"}); }
+}
+function val(id){ return document.getElementById(id).value.trim(); }
+function saveCustomGrant(){
+  const name=val("f-name");
+  if(!name){ alert("Give the grant a name first."); return; }
+  const due=val("f-due");
+  const g={ tier:val("f-tier")||"rolling", name:name, spon:val("f-spon")||"Added by you",
+    amt:val("f-amt")||"—", due:due||null, dueText: due?fmtShort(due):"Verify window",
+    repay:val("f-repay")||"grant", decision:val("f-decision")||null,
+    use:val("f-use")||"—", fit:val("f-fit")||"Added manually.", watch:val("f-watch")||"—",
+    url:val("f-url")||"", custom:true, id:"c"+Date.now() };
+  custom[brand].push(g); saveJSON(LS_CUSTOM,custom);
+  ["f-name","f-spon","f-amt","f-due","f-decision","f-use","f-fit","f-watch","f-url"].forEach(i=>document.getElementById(i).value="");
+  toggleAddForm(); tier=g.tier; renderTabs(); render(); renderStats();
+}
+function deleteCustom(id){
+  if(!confirm("Remove this grant you added?")) return;
+  custom[brand]=custom[brand].filter(g=>g.id!==id); saveJSON(LS_CUSTOM,custom); render(); renderTabs(); renderStats();
+}
+
+/* ---------------- render ---------------- */
+function setBrand(b){
+  brand=b;
+  document.getElementById("b-eridion").setAttribute("aria-pressed", b==="eridion");
+  document.getElementById("b-quinta").setAttribute("aria-pressed", b==="quinta");
+  document.getElementById("title").textContent=BRANDS[b].title;
+  document.getElementById("subtitle").textContent=BRANDS[b].sub;
+  if(addOpen) toggleAddForm();
+  renderTabs(); renderStats(); render();
+}
+function renderTabs(){
+  const data=grantsFor(brand);
+  const el=document.getElementById("tabs");
+  el.innerHTML=TIERS.map(t=>{
+    const n=data.filter(g=>g.tier===t.id).length;
+    if(n===0) return "";
+    return `<button class="tab" aria-pressed="${t.id===tier}" onclick="tier='${t.id}';renderTabs();render();">${esc(t.label)} · ${n}</button>`;
+  }).join("");
+  if(!data.some(g=>g.tier===tier)) tier="rolling";
+}
+function renderStats(){
+  const data=grantsFor(brand).filter(g=>g.tier!=="excluded");
+  const inPipe=data.filter(g=>["Eligible","Preparing","Submitted"].includes(statusOf(brand,g.name))).length;
+  const soon=data.filter(g=>{const d=daysUntil(g.due);return d>=0&&d<=45;}).length;
+  const strong=data.filter(g=>pctFor(scoresFor(brand,g))>=75).length;
+  const cards=[["Live opportunities",data.length],["Strong fits (75%+)",strong],["Due within 45 days",soon],["In your pipeline",inPipe]];
+  document.getElementById("stats").innerHTML=cards.map(c=>`<div class="stat"><div class="l">${c[0]}</div><div class="v">${c[1]}</div></div>`).join("");
+}
+function render(){
+  const sort=document.getElementById("sort").value;
+  const t=TIERS.find(x=>x.id===tier);
+  document.getElementById("tiernote").textContent=t?t.note:"";
+  let items=grantsFor(brand).filter(g=>g.tier===tier);
+  items.sort((a,b)=>{
+    if(sort==="fit") return pctFor(scoresFor(brand,b))-pctFor(scoresFor(brand,a));
+    if(sort==="due") return daysUntil(a.due)-daysUntil(b.due);
+    if(sort==="amount") return amtValue(b.amt)-amtValue(a.amt);
+    if(sort==="status") return STATUS_ORDER[statusOf(brand,a.name)]-STATUS_ORDER[statusOf(brand,b.name)];
+    return a.name.localeCompare(b.name);
+  });
+
+  document.getElementById("list").innerHTML=items.map((g,idx)=>{
+    if(g.tier==="excluded"){
+      return `<div class="g excl"><div class="name">${esc(g.name)}</div>
+        <div class="watch" style="margin-top:8px;"><b>Why excluded:</b> ${esc(g.watch)}</div></div>`;
+    }
+    const s=statusOf(brand,g.name);
+    const r=rec(brand,g.name);
+    const sc=scoresFor(brand,g);
+    const pct=pctFor(sc);
+    const rid="rub_"+g.tier+"_"+idx;
+    const subVal=r.submitted||"";
+    const decVal=r.decision||g.decision||"";
+    const decDefault = !r.decision && g.decision;
+    const updated = r.updated ? `<span class="upd">updated ${esc(fmtShort(r.updated))}</span>` : "";
+    const repayPill = g.repay==="loan" ? '<span class="pill loan">Loan · repayable</span>'
+      : g.repay==="service" ? '<span class="pill svc">Service · no cash</span>'
+      : '<span class="pill grant">Grant · no payback</span>';
+    const dueClass=(daysUntil(g.due)>=0&&daysUntil(g.due)<=30)?"due due-soon":"due";
+    const link=g.url?`<a class="link" href="${g.url}" target="_blank" rel="noopener">Open ${EXT}</a>`:"";
+    const delBtn=g.custom?`<button class="delx" title="Remove" onclick="deleteCustom('${g.id}')">&times;</button>`:"";
+    const meTag=g.custom?'<span class="tagme">added</span>':"";
+
+    const rubricRows = CRIT.map(c=>`
+      <div class="rrow">
+        <span class="rl">${c.label} <small>· ${c.help}</small></span>
+        <select onchange="setScore('${brand}',this.dataset.n,'${c.k}',this.value)" data-n="${esc(g.name)}">
+          ${[1,2,3,4,5].map(n=>`<option value="${n}" ${sc[c.k]===n?"selected":""}>${n}</option>`).join("")}
+        </select>
+        <span class="rw">weight ${weights[c.k]}</span>
+      </div>`).join("");
+
+    return `<div class="g">
+      <div class="head">
+        <div><div class="name">${esc(g.name)}${meTag}</div><div class="spon">${esc(g.spon)}</div></div>
+        <div class="fitwrap">
+          <button class="fit-badge ${fitClass(pct)}" onclick="document.getElementById('${rid}').classList.toggle('open')">
+            ${pct}% fit <span class="chev">&#9660;</span></button>
+          ${delBtn}
+        </div>
+      </div>
+      <div class="rubric" id="${rid}">
+        ${rubricRows}
+        <div class="rtot">Scores are 1&ndash;5. Adjust any row to override the default; the % recomputes live using your weights above.</div>
+      </div>
+      <div class="pills">
+        <span class="pill amt">${esc(g.amt)}</span>
+        <span class="pill ${dueClass}">${esc(fmtDue(g))}</span>
+        ${repayPill}
+      </div>
+      <div class="fitline"><b>Fit:</b> ${esc(g.fit)}</div>
+      <div class="use"><b>Use of funds:</b> ${esc(g.use)}</div>
+      <div class="watch"><b>Watch:</b> ${esc(g.watch)}</div>
+      <div class="foot">
+        <div class="statuswrap">
+          <span class="sdot" style="background:${statusColor(s)}"></span>
+          <select class="status" onchange="setStatus('${brand}',this.dataset.n,this.value)" data-n="${esc(g.name)}">
+            ${STATUSES.map(x=>`<option ${x===s?"selected":""}>${x}</option>`).join("")}
+          </select>
+          ${updated}
+        </div>
+        ${link}
+      </div>
+      <div class="dates">
+        <label>Date submitted
+          <input type="date" value="${subVal}" data-n="${esc(g.name)}" onchange="setField('${brand}',this.dataset.n,'submitted',this.value)">
+        </label>
+        <label>Winners announced${decDefault?' <span class="hint">expected</span>':''}
+          <input type="date" value="${decVal}" data-n="${esc(g.name)}" onchange="setField('${brand}',this.dataset.n,'decision',this.value)">
+        </label>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+/* init */
+renderWeights();
+setBrand("eridion");
+document.getElementById("sort").value="fit";
+render();
+</script>
+</body>
+</html>
